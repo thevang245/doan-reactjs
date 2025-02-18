@@ -1,0 +1,7 @@
+/* src/index.css */
+
+/* Import lớp preflight thay vì @tailwind base */
+@import "tailwindcss/preflight";
+@import "leaflet/dist/leaflet.css";
+
+@tailwind utilities;

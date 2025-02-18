@@ -1,0 +1,70 @@
+
+
+
+.border {
+	
+	margin: 0px auto;
+	text-align: center;
+	
+}
+
+
+.border input {
+	width: 280px;
+	height: 40px;
+	border-radius: 5px;
+	margin-top: 15px;
+	color: darkgrey;
+	border-color: gainsboro;
+	font-size: medium;
+	border-width: 1px;
+	padding-left: 10px;
+}
+
+.blue {
+	border: 1px solid #ccc;
+}
+
+
+.border a {
+	text-decoration: none;
+	color: black;
+}
+
+.a {
+	border-bottom: 1px solid;
+	border-color: gainsboro;
+	width: 300px;
+	margin: 0px auto;
+	margin-top: 15px;
+	margin-bottom: 8px;
+
+}
+
+.button1 {
+	font-weight: bold;
+	font-size: 18px;
+	border: 1px solid;
+	width: 280px;
+	height: 45px;
+	margin-top: 15px;
+	margin-bottom: 15px;
+	background-color: black;
+	color: aliceblue;
+	border-radius: 7px;
+
+}
+
+.button2 {
+	font-weight: bold;
+	font-size: 15px;
+	border: 1px solid;
+	width: 180px;
+	height: 45px;
+	margin-top: 15px;
+	background-color: black;
+	color: aliceblue;
+	border-radius: 7px;
+	margin-bottom: 20px;
+}
+
