@@ -6,7 +6,8 @@ import utc from 'dayjs/plugin/utc';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/vi';  // Import ngôn ngữ tiếng Việt
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 // Kích hoạt các plugin cần thiết
 dayjs.extend(utc);
@@ -36,12 +37,14 @@ dayjs.locale({
 });
 
 
-function ItemProduct({ sanpham }) {
+function ItemProduct({ sanpham, favouritePosts }) {
   const dispatch = useDispatch();
   const loginStatus = useSelector((state) => state.user.login);
 
   const vietnamTime = dayjs.utc(sanpham.createdAt).tz('Asia/Ho_Chi_Minh');
   const timeAgo = vietnamTime.fromNow();
+
+
 
   // Hàm chuyển đổi giá trị thành dạng "triệu"
   const formatPrice = (price) => {
@@ -58,6 +61,34 @@ function ItemProduct({ sanpham }) {
   };
 
   const [liked, setLiked] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user ? user.id : null; 
+
+  useEffect(() => {
+    if (favouritePosts?.some((fav) => fav._id === sanpham._id)) {
+      setLiked(true);
+    } else {
+      setLiked(false);
+    }
+  }, [favouritePosts, sanpham]);
+
+  const handleFavouriteClick = async () => {
+    if (!loginStatus || !userId) {
+      alert("Vui lòng đăng nhập để lưu bài viết!");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:5000/favourites", {
+        userId,
+        postId: sanpham._id,
+      });
+
+      setLiked(response.data.isFavourite);
+    } catch (error) {
+      console.error("Lỗi khi lưu bài viết:", error);
+    }
+  };
 
 
   return (
@@ -86,16 +117,12 @@ function ItemProduct({ sanpham }) {
             <h5 className="font-bold text-blue-400 text-left !font-bold">
               {sanpham.title.length > 55 ? `${sanpham.title.slice(0, 55)}...` : sanpham.title}
             </h5>
-            {/* <button
-              className="text-right"
-              onClick={() => setLiked(!liked)}
-            >
-              <i
-                className={`fa-heart text-lg ${liked ? "fa-solid text-red-500" : "fa-regular text-gray-500"
-                  }`}
-              ></i>
+            {/* Icon trái tim */}
+            {/* <button className="text-right" onClick={handleFavouriteClick}>
+              <i className={`fa-heart text-lg ${liked ? "fa-solid text-red-500" : "fa-regular text-gray-500"}`}></i>
             </button> */}
           </div>
+
 
 
           <div className="text-gray-500  text-left text-base">

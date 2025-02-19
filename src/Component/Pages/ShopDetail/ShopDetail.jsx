@@ -36,7 +36,7 @@ function ShopDetail() {
   const location = useLocation(); // Lấy state từ Link
   const { id } = useParams();
   const [data, setData] = useState({ sanpham: {}, isLoading: false });
-  const loginStatus = useSelector((state) => state.user.login); // Lấy trạng thái đăng nhập từ Redux store
+
   const [data2, setData2] = useState({ product: [], isLoading: false });
   const [coordinates, setCoordinates] = useState({ latitude: null, longitude: null });
 
@@ -45,6 +45,51 @@ function ShopDetail() {
   // Khai báo state cho selectedImage và currentIndex
   const [selectedImage, setSelectedImage] = useState(images[0] || null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [isFavourite, setIsFavourite] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user ? user.id : null; // Lấy userId an toàn
+  const loginStatus = JSON.parse(localStorage.getItem("loginStatus")) || false;
+
+
+  const checkFavouriteStatus = async () => {
+    if (!userId || !id) return;
+
+    try {
+      const response = await axios.get(`http://localhost:5000/favourites/${userId}/${id}`);
+      setIsFavourite(response.data.isFavourite);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra bài viết yêu thích:", error);
+    }
+  };
+
+
+  const handleFavouriteClick = async () => {
+    if (!loginStatus || !userId) {
+      alert("Vui lòng đăng nhập để lưu bài viết!");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:5000/favourites", {
+        userId,  // Sử dụng biến userId đã kiểm tra
+        postId: id,
+      });
+
+      setIsFavourite(response.data.isFavourite);
+    } catch (error) {
+      console.error("Lỗi khi lưu bài viết:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    checkFavouriteStatus();
+  }, [id, userId]);
+
+
+
+
 
   // Hàm chuyển đến ảnh trước
   const handlePrevImage = () => {
@@ -118,10 +163,10 @@ function ShopDetail() {
         const response = await axios.get(`http://localhost:5000/api/posts/${id}`); // API lấy chi tiết bài đăng
         setData({ sanpham: response.data, isLoading: true });
         const { address } = response.data;
-      if (address && address.street && address.ward && address.district && address.city) {
-        const coordinates = await getCoordinates(address); // Lấy tọa độ từ địa chỉ
-        setCoordinates(coordinates); // Cập nhật tọa độ vào state
-      }
+        if (address && address.street && address.ward && address.district && address.city) {
+          const coordinates = await getCoordinates(address); // Lấy tọa độ từ địa chỉ
+          setCoordinates(coordinates); // Cập nhật tọa độ vào state
+        }
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
       }
@@ -137,17 +182,17 @@ function ShopDetail() {
     if (data.sanpham.address && data.sanpham.address.city && data.sanpham.address.district) {
       const { city, district } = data.sanpham.address;
       const currentProductId = data.sanpham._id; // Giả sử sản phẩm hiện tại có id là data.sanpham.id
-  
+
       // Loại bỏ khoảng trống thừa trước và sau tên thành phố và quận
       const cityTrimmed = city.trim().toLowerCase();
       const districtTrimmed = district.trim().toLowerCase();
-  
+
       // Loại bỏ từ "quận" trong tên quận, nếu có
       const districtWithoutQuan = districtTrimmed.replace(/quận\s*/g, '').trim();
-  
+
       // Loại bỏ từ "thành phố" trong tên thành phố, nếu có
       const cityWithoutThanhPho = cityTrimmed.replace(/thành\s*phố\s*/g, '').trim();
-  
+
       // Gọi API để lấy danh sách các bài đăng
       axios.get('http://localhost:5000/api/posts')
         .then(kQ => {
@@ -156,22 +201,22 @@ function ShopDetail() {
               // Lấy thông tin thành phố và quận từ mỗi bài đăng
               const productCityTrimmed = product.address.city.trim().toLowerCase();
               const productDistrictTrimmed = product.address.district.trim().toLowerCase();
-  
+
               // Loại bỏ từ "quận" trong tên quận của mỗi bài đăng, nếu có
               const productDistrictWithoutQuan = productDistrictTrimmed.replace(/quận\s*/g, '').trim();
-  
+
               // Loại bỏ từ "thành phố" trong tên thành phố của mỗi bài đăng, nếu có
               const productCityWithoutThanhPho = productCityTrimmed.replace(/thành\s*phố\s*/g, '').trim();
-  
+
               // Kiểm tra nếu thành phố và quận của bài đăng có chứa thành phố và quận của sản phẩm hiện tại
               const cityMatch = productCityWithoutThanhPho.includes(cityWithoutThanhPho);
               const districtMatch = productDistrictWithoutQuan.includes(districtWithoutQuan);
-  
+
               // Trả về các bài đăng có thành phố và quận khớp và loại trừ sản phẩm hiện tại
               return cityMatch && districtMatch && product._id !== currentProductId;
             }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sắp xếp bài mới nhất trước
-            .slice(0, 3); // Lấy 3 bài mới nhất;
-            
+              .slice(0, 3); // Lấy 3 bài mới nhất;
+
             setData2({ product: filteredProducts, isLoading: false });
           } else {
             console.error("Không có bài đăng hoặc dữ liệu không đúng định dạng");
@@ -180,16 +225,16 @@ function ShopDetail() {
         .catch(e => console.error(e));
     }
   }, [data.sanpham.address]); // Chạy lại khi địa chỉ thay đổi
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -213,14 +258,7 @@ function ShopDetail() {
 
 
     <div className="container mx-auto py-8">
-      {/* Product Breadcrumb */}
-      <div className="flex mb-8 justify-center">
-        <a href="./index.html" className="text-gray-600 hover:text-gray-900">Home</a>
-        <span className="mx-2">/</span>
-        <a href="./shop.html" className="text-gray-600 hover:text-gray-900">Shop</a>
-        <span className="mx-2">/</span>
-        <span className="text-gray-600">Product Details</span>
-      </div>
+
 
       <div className="flex flex-wrap justify-center">
         {/* Product Main Image */}
@@ -293,12 +331,18 @@ function ShopDetail() {
     <div className="container mx-auto p-6">
       <div className="w-full lg:w-3/4 mx-auto border rounded-xl  bg-white">
         <div className="p-4 text-left">
-          <h4
-            className="text-base text-red-600"
-            style={{ fontWeight: "bold" }}
-          >
-            {data.sanpham.title}
-          </h4>
+        <div className="flex items-start justify-between w-full">
+  <h4 className="text-base text-red-600 font-bold w-[70%] break-words">
+    {data.sanpham.title}
+  </h4>
+  <span className="flex items-center gap-1 !m-4 cursor-pointer whitespace-nowrap" onClick={handleFavouriteClick}>
+    <i className={`fa-${isFavourite ? "solid" : "regular"} fa-heart text-xl ${isFavourite ? "text-red-500" : "text-gray-500"}`}></i>
+    {isFavourite ? "Đã lưu bài" : "Lưu bài viết"}
+    
+  </span>
+</div>
+
+
           <h5 className="!text-base">Địa chỉ: {data.sanpham.address?.street || ''},{data.sanpham.address?.ward || ''},{data.sanpham.address?.district || ''},{data.sanpham.address?.city || ''}</h5>
 
           <div className="mt-2 text-gray-700">

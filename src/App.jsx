@@ -3,13 +3,13 @@ import Layout from "./Component/Layout"
 import Home from "./Component/Pages/Home/Home"
 import Shop from "./Component/Pages/Shop/Shop"
 import ShopDetail from "./Component/Pages/ShopDetail/ShopDetail"
-import Cart from "./Component/Pages/Cart/Cart"
-import Login from "./Component/Pages/User/Login"
 import Error from "./Component/Pages/Error/Error"
-import Infor from "./Component/Pages/User/Infor"
 import Apartment from "./Component/Pages/Shop/Apartment"
 import House from "./Component/Pages/Shop/House"
 import SearchResult from "./Component/Pages/Shop/SearchResult"
+import Signin from "./auth/Signin"
+import Signup from "./auth/Signup"
+import Favourite from "./Component/Pages/Favourite/Favourite"
 
 
 const router = createBrowserRouter([
@@ -43,20 +43,23 @@ const router = createBrowserRouter([
         element: <ShopDetail/>, //// Chi tiet san pham
       },
       {
-        path: '/gio-hang',
-        element: <Cart/>, //// Gio hang
+        path: '/saved-posts',
+        element: <Favourite/>, //// Gio hang
       },
       {
-        path: '/infor-user',
-        element: <Infor/>, 
+        path: '/sign-in',
+        element: <Signin/>
       },
       {
-        path: '/dang-nhap',
-        element: <Login/>
-      },
+        path: '/sign-up',
+        element: <Signup/>
+      }
+      
+      
      
     ]
-  },
+  }
+  
  
  
 ])

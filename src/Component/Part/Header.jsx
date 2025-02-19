@@ -1,21 +1,49 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { fetchMenu } from "../Reducer/menuSlice";
-
 import allCities from "../dvhcvn.json"; // Import file dữ liệu toàn bộ thành phố, quận huyện, phường xã
-
 function Header() {
   const menu = useSelector((state) => state.menu);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const loginStatus = JSON.parse(localStorage.getItem("loginStatus"));
+
   const [activeMenu, setActiveMenu] = useState("/");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
   const [category, setCategory] = useState("");
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Ẩn dropdown khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");        
+    localStorage.removeItem("loginStatus"); 
+  
+    setShowDropdown(false); // Đóng dropdown trước
+    setTimeout(() => {
+      window.location.reload(); // Reload sau khi dropdown đã đóng
+    }, 200); // Đợi 200ms để React cập nhật UI
+  };
+  
+  
 
   // Dữ liệu thành phố lấy từ file JSON
   const data = allCities.data.reduce((acc, cityData) => {
@@ -100,16 +128,60 @@ function Header() {
       {/* Header Section Begin */}
       <header className="sticky top-0 z-20 bg-white shadow-md header bg-gradient-to-r from-blue-500 to-sky-400 w-full relative">
         {/* Logo and Phone Section */}
-        <div className="container py-0 flex shadow-lg justify-between items-center bg-white rounded-tl-none rounded-tr-none rounded-bl-full rounded-br-full !w-full">
+        <div className="container py-0 flex shadow-lg justify-between items-center bg-white rounded-tl-none rounded-tr-none rounded-bl-full rounded-br-full !w-full relative">
           <div className="header__logo w-full">
             <Link to="/">
               <h3>TimtroOnline</h3>
             </Link>
           </div>
-         
+
+          {/* Đảm bảo các phần tử không bị xuống dòng */}
+          <div className="!flex items-center !gap-4 !pr-4">
+            <Link to="/saved-posts" className="!text-blue-500 !hover:text-red-700 !flex !items-center !whitespace-nowrap">
+              <i className="fa-solid fa-heart !fa-fw !mr-1"></i>
+              Bài đã lưu
+            </Link>
+
+            {loginStatus ? (
+              // Nếu đã đăng nhập, hiển thị button tên user + dropdown
+              <div className="relative">
+                <button
+                  className="text-blue-500  flex items-center whitespace-nowrap"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  <i className="fa-solid fa-circle-user fa-fw mr-1"></i>
+                  {user.name}
+                </button>
+
+                {/* Dropdown thông tin */}
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-lg p-3 border border-gray-200">
+                    <p className="font-bold text-gray-700"><i className="text-blue-500 fa-regular fa-address-book p-2"></i>{user.name}</p>
+                    <p className="text-gray-600"><i className="text-blue-500 fa-solid fa-square-phone p-2"></i>{user.phone}</p>
+                    <hr className="my-2" />
+                    <button className="text-red-500 hover:text-red-700 w-full text-left" onClick={handleLogout}>
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Nếu chưa đăng nhập, hiển thị Link chuyển đến trang đăng nhập
+              <Link to="/sign-in" className="!text-blue-500 !hover:text-red-700 !flex !items-center !whitespace-nowrap">
+                <i className="fa-solid fa-circle-user fa-fw mr-1"></i>
+                Đăng nhập
+              </Link>
+            )}
+
+          </div>
+
+
+
         </div>
 
-        {/* Navigation Menu Section */}
+
+
+
         <div className="py-0">
           <nav className="header__menu mobile-menu">
             <ul className="flex justify-center space-x-6 py-0 m-0">
